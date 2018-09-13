@@ -61,6 +61,7 @@ func handleMsg(connect net.Conn) {
 	printError(err)
 
 	commands = append(commands, "-c")
+	cmd = exec.Command("grep", commands...)
 	stdOutErr, _ := cmd.CombinedOutput()
 	connect.Write([]byte(stdOutErr))
 
