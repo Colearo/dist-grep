@@ -43,7 +43,6 @@ func main() {
 }
 
 func makeRequest(address string) {
-	fmt.Printf("Request to %s\n", address)
 
 	// Time out needed in order to deal with server failure.
 	conn, err := net.DialTimeout("tcp", address, time.Second)
