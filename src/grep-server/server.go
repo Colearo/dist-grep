@@ -100,7 +100,7 @@ func handleMsg(connect net.Conn) {
 		}
 
 		fmt.Printf("%s", string(bufferOut[:lenOut]))
-		connect.Write(bufferOut[:lenOut])
+		connect.Write(bufferOut[:])
 	}
 
 	err = cmd.Wait()
