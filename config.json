@@ -6,6 +6,6 @@
 	"localInfo": {
 		"nodeName": "vm1",
 		"serverPort": "5555",
-		"logPath": "unknwon"
+		"logPath": "/Users/colearolu/Downloads/logs/vm1.log"
 	}
 }

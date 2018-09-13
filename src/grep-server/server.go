@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"os"
 	"os/exec"
@@ -11,8 +13,29 @@ import (
 	"sync"
 )
 
+type Config struct {
+	LocalInfo LocalInfo
+}
+type LocalInfo struct {
+	NodeName   string
+	ServerPort string
+	LogPath    string
+}
+
+var config Config
+
 func main() {
-	serverAddr := ":5555"
+	configFile, err := os.Open("../../config.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer configFile.Close()
+
+	// Read json file's contents and cache them to var config.
+	configBytes, _ := ioutil.ReadAll(configFile)
+	json.Unmarshal(configBytes, &config)
+
+	serverAddr := ":" + config.LocalInfo.ServerPort
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", serverAddr)
 	printError(err)
 	listen, err := net.ListenTCP("tcp", tcpAddr)
@@ -45,7 +68,7 @@ func handleMsg(connect net.Conn) {
 		}
 	}
 
-	commands = append(commands, "-Hn", "/Users/colearolu/Downloads/logs/vm1.log")
+	commands = append(commands, "-Hn", config.LocalInfo.LogPath)
 	cmd := exec.Command("grep", commands...)
 	stdOut, err := cmd.StdoutPipe()
 	var stdOutErr []byte
