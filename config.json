@@ -1,0 +1,11 @@
+{
+	"addresses": [
+		"0.0.0.0:5555",
+		"0.0.0.0:6666"
+	],
+	"localInfo": {
+		"nodeName": "vm1",
+		"serverPort": "5555",
+		"logPath": "unknwon"
+	}
+}
