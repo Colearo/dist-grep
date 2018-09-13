@@ -21,7 +21,7 @@ var args string
 
 func main() {
 	// Open local config.json file.
-	configFile, err := os.Open("config.json")
+	configFile, err := os.Open("../../config.json")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -43,7 +43,6 @@ func main() {
 }
 
 func makeRequest(address string) {
-	fmt.Printf("Request to %s\n", address)
 
 	// Time out needed in order to deal with server failure.
 	conn, err := net.DialTimeout("tcp", address, time.Second)
