@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"time"
+	"sync"
 )
 
 
@@ -18,8 +19,10 @@ type Config struct {
 
 // global var
 var args string
+var wg sync.WaitGroup
 
 func main() {
+
 	// Open local config.json file.
 	configFile, err := os.Open("../../config.json")
 	if err != nil {
@@ -27,7 +30,7 @@ func main() {
 	}
 	defer configFile.Close()
 
-	// Read json file's contents and pass them to var config.
+	// Read json file's contents and cache them to var config.
 	configBytes, _ := ioutil.ReadAll(configFile)
 	var config Config
 	json.Unmarshal(configBytes, &config)
@@ -35,14 +38,20 @@ func main() {
 	// Store grep arguments.
 	args = strings.Join(os.Args[1:], " ")
 
-	for i := 0; i < len(config.Addresses); i++ {
-		go makeRequest(config.Addresses[i])
+	fmt.Println(config.Addresses)
+	// Send concurrent requests to all servers.
+	for _, address := range config.Addresses {
+		wg.Add(1)
+		go makeRequest(address)
 	}
 
-	select{}
+	// Wait for all requests to complete.
+	wg.Wait()
 }
 
 func makeRequest(address string) {
+	// Notify the WaitGroup after this goroutine complete.
+	defer wg.Done()
 
 	// Time out needed in order to deal with server failure.
 	conn, err := net.DialTimeout("tcp", address, time.Second)
