@@ -1,11 +1,11 @@
 {
 	"addresses": [
-		"0.0.0.0:5555",
-		"0.0.0.0:6666"
+		"fa18-cs425-g29-01.cs.illinois.edu:5555",
+		"fa18-cs425-g29-02.cs.illinois.edu:5555"
 	],
 	"localInfo": {
 		"nodeName": "vm1",
 		"serverPort": "5555",
-		"logPath": "/Users/colearolu/Downloads/logs/vm1.log"
+		"logPath": "/var/log/dist-grep/vm1.log"
 	}
 }
