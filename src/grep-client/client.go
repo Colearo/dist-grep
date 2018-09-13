@@ -38,7 +38,6 @@ func main() {
 	// Store grep arguments.
 	args = strings.Join(os.Args[1:], " ")
 
-	fmt.Println(config.Addresses)
 	// Send concurrent requests to all servers.
 	for _, address := range config.Addresses {
 		wg.Add(1)
