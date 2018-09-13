@@ -6,7 +6,9 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
+	"sync"
 )
 
 func main() {
@@ -34,9 +36,30 @@ func handleMsg(connect net.Conn) {
 		fmt.Println("Fatal Error")
 		return
 	}
+	validFlagC := regexp.MustCompile(`^\-[a-zA-Z]*c`)
+	flagC := false
+	for _, val := range commands {
+		if validFlagC.MatchString(val) {
+			flagC = true
+			break
+		}
+	}
+
 	commands = append(commands, "-Hn", "/Users/colearolu/Downloads/logs/vm1.log")
 	cmd := exec.Command("grep", commands...)
 	stdOut, err := cmd.StdoutPipe()
+	var stdOutErr []byte
+	var wg sync.WaitGroup
+	if flagC == false {
+		wg.Add(1)
+		go func() {
+			commandsCount := append(commands, "-c")
+			cmdCount := exec.Command("grep", commandsCount...)
+			stdOutErr, _ = cmdCount.CombinedOutput()
+			fmt.Println(string([]byte(stdOutErr)))
+			wg.Done()
+		}()
+	}
 	printError(err)
 	//stdOutErr, _ := cmd.CombinedOutput()
 	bufferOut := make([]byte, 1024)
@@ -60,10 +83,10 @@ func handleMsg(connect net.Conn) {
 	err = cmd.Wait()
 	printError(err)
 
-	commands = append(commands, "-c")
-	cmd = exec.Command("grep", commands...)
-	stdOutErr, _ := cmd.CombinedOutput()
-	connect.Write([]byte(stdOutErr))
+	if flagC == false {
+		wg.Wait()
+		connect.Write([]byte(stdOutErr))
+	}
 
 	fmt.Println("[Debug] Output Ended")
 	connect.Close()
@@ -72,6 +95,5 @@ func handleMsg(connect net.Conn) {
 func printError(err error) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[ERROR]", err.Error())
-		os.Exit(1)
 	}
 }
