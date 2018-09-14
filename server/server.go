@@ -28,9 +28,7 @@ var config Config
 func main() {
 	// Open config file
 	configFile, err := os.Open("../../config.json")
-	if err != nil {
-		fmt.Println(err)
-	}
+	printError(err)
 	defer configFile.Close()
 
 	// Read json file's contents and cache them to var config.
