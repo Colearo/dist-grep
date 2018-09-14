@@ -25,6 +25,7 @@ var args string
 var wg sync.WaitGroup
 var mutex sync.Mutex
 var total_count int
+var total_connected_vm int
 
 func main() {
 	// Start timer
@@ -54,40 +55,43 @@ func main() {
 	// Wait for all requests to complete.
 	wg.Wait()
 
+	// Print total connected VMs.
+	fmt.Printf("Total Connected VMs: %d\n", total_connected_vm)
+
 	// Print total count.
-	fmt.Printf("Total Count: %d.\n", total_count)
+	fmt.Printf("Total Counts: %d\n", total_count)
 	
-	// Print processing time.
+	// Print total time.
 	end := time.Now()
-	fmt.Printf("Total Time: %.3f seconds.\n", end.Sub(start).Seconds())
+	fmt.Printf("Total Time: %.3f seconds\n", end.Sub(start).Seconds())
 }
 
 func makeRequest(address string, index int) {
 	// Notify the WaitGroup after this goroutine complete.
 	defer wg.Done()
 
+	// Record whether this machine is connected
+	var connected bool
+
 	// Time out needed in order to deal with server failure.
 	conn, err := net.DialTimeout("tcp", address, time.Second)
 	if err != nil {
-		//fmt.Printf("Failed to connect %s\n", address)
+		fmt.Printf("Failed to connect %s\n", address)
 		return
 	}
 	defer conn.Close()
 	fmt.Printf("Connected with %s\n", address)
+	connected = true
 
 	// Write arguments to the remote grep server.
 	conn.Write([]byte(args))
 
-
-	
-	// Read and buffer contents
+	// Read and buffer contents.
 	var buf bytes.Buffer
-	t1 := time.Now()
 	io.Copy(&buf, conn)
-	t2 := time.Now()
 	info := buf.String()
 	
-	// Retrieve count number from info
+	// Retrieve count number from info.
 	info_list := strings.Split(info, ":")
 	count_info := info_list[len(info_list) - 1]
 	re := regexp.MustCompile("[0-9]+")
@@ -96,15 +100,16 @@ func makeRequest(address string, index int) {
 
 	// Synchornize print contents from buffer, and add total_count.
 	mutex.Lock()
+	if connected {
+		total_connected_vm += 1
+	}
 	total_count += count
 	fmt.Print(info)
-	fmt.Println("Sub-total Count: ", total_count)
-	fmt.Println("Time Consumes: ", t2.Sub(t1).Seconds())
 	mutex.Unlock()
-	
 
 
-	/*	
+
+	/*
 	// Read and print concurrently.
 	// We ensure the last packet only contains the count information.
 	// Variables to collect count info.
