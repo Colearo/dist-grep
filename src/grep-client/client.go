@@ -17,11 +17,13 @@ type Config struct {
 	Addresses []string
 }
 
-// global var
+// global variables
 var args string
 var wg sync.WaitGroup
 
 func main() {
+	// Start timer
+	start := time.Now()
 
 	// Open local config.json file.
 	configFile, err := os.Open("../../config.json")
@@ -46,6 +48,8 @@ func main() {
 
 	// Wait for all requests to complete.
 	wg.Wait()
+	end := time.Now()
+	fmt.Printf("total time: %.3f seconds.\n", end.Sub(start).Seconds())
 }
 
 func makeRequest(address string) {
@@ -64,19 +68,18 @@ func makeRequest(address string) {
 	// Write arguments to the remote grep server.
 	conn.Write([]byte(args))
 
-	//Read and print concurrently.
+	// Read and print concurrently.
+	// We ensure the last packet only contains the count information.
 	buf := make([]byte, 256)
 	for {
 		n, err := conn.Read(buf)
+		//fmt.Printf("\nNNNNNNNNNNNNNNNNNNNNN: %d\n", n)
 		if err != nil {
 			if err == io.EOF {
-				// Handle input contents.
-				fmt.Println(string(buf[:n]))
 				break
 			}
-			fmt.Println(err)
+			fmt.Print(err)
 		}
-		// Handle input contents.
 		fmt.Print(string(buf[:n]))
 	}
 }
