@@ -12,6 +12,7 @@ import (
 	"sync"
 	"strconv"
 	"bytes"
+	"regexp"
 )
 
 
@@ -54,11 +55,11 @@ func main() {
 	wg.Wait()
 
 	// Print total count.
-	fmt.Printf("total count: %d.\n", total_count)
+	fmt.Printf("Total Count: %d.\n", total_count)
 	
 	// Print processing time.
 	end := time.Now()
-	fmt.Printf("total time: %.3f seconds.\n", end.Sub(start).Seconds())
+	fmt.Printf("Total Time: %.3f seconds.\n", end.Sub(start).Seconds())
 }
 
 func makeRequest(address string, index int) {
@@ -68,7 +69,7 @@ func makeRequest(address string, index int) {
 	// Time out needed in order to deal with server failure.
 	conn, err := net.DialTimeout("tcp", address, time.Second)
 	if err != nil {
-		fmt.Printf("Failed to connect %s\n", address)
+		//fmt.Printf("Failed to connect %s\n", address)
 		return
 	}
 	defer conn.Close()
@@ -79,24 +80,26 @@ func makeRequest(address string, index int) {
 
 
 	
-	// Read and buffer contents, then print.
+	// Read and buffer contents
 	var buf bytes.Buffer
+	t1 := time.Now()
 	io.Copy(&buf, conn)
+	t2 := time.Now()
 	info := buf.String()
 	
 	// Retrieve count number from info
-	t1 := time.Now()
 	info_list := strings.Split(info, ":")
 	count_info := info_list[len(info_list) - 1]
-	count_info = strings.TrimSpace(count_info)
+	re := regexp.MustCompile("[0-9]+")
+	count_info = re.FindString(count_info)
 	count, _ := strconv.Atoi(count_info)
-	t2 := time.Now()
 
 	// Synchornize print contents from buffer, and add total_count.
 	mutex.Lock()
 	total_count += count
 	fmt.Print(info)
-	fmt.Println("time for retrieve count: ", t2.Sub(t1).Seconds())
+	fmt.Println("Sub-total Count: ", total_count)
+	fmt.Println("Time Consumes: ", t2.Sub(t1).Seconds())
 	mutex.Unlock()
 	
 
