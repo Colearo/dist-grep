@@ -89,7 +89,7 @@ func handleMsg(connect net.Conn) {
 	printError(err)
 	for {
 		bufferOut := make([]byte, 1024)
-		lenOut, errOut := stdOut.Read(bufferOut)
+		_, errOut := stdOut.Read(bufferOut)
 
 		if errOut != nil {
 			if errOut == io.EOF {
