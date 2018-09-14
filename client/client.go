@@ -1,4 +1,4 @@
-package main 
+package client 
 
 import (
 	"fmt"
@@ -15,6 +15,8 @@ import (
 	"regexp"
 )
 
+// OOP programming. Convenient for unit test.
+type Client struct {}
 
 type Config struct {
 	Addresses []string
@@ -27,12 +29,12 @@ var mutex sync.Mutex
 var total_count int
 var total_connected_vm int
 
-func main() {
+func (c Client) Launch() {
 	// Start timer
 	start := time.Now()
 
 	// Open local config.json file.
-	configFile, err := os.Open("../../config.json")
+	configFile, err := os.Open("$HOME/go/src/dist-grep/config.json")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -106,8 +108,6 @@ func makeRequest(address string, index int) {
 	total_count += count
 	fmt.Print(info)
 	mutex.Unlock()
-
-
 
 	/*
 	// Read and print concurrently.

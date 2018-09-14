@@ -27,7 +27,7 @@ var config Config
 
 func main() {
 	// Open config file
-	configFile, err := os.Open("../../config.json")
+	configFile, err := os.Open("$HOME/go/src/dist-grep/config.json")
 	printError(err)
 	defer configFile.Close()
 
