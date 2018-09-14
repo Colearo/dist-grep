@@ -85,10 +85,10 @@ func handleMsg(connect net.Conn) {
 	}
 	printError(err)
 	//stdOutErr, _ := cmd.CombinedOutput()
-	bufferOut := make([]byte, 1024)
 	err = cmd.Start()
 	printError(err)
 	for {
+		bufferOut := make([]byte, 1024)
 		lenOut, errOut := stdOut.Read(bufferOut)
 
 		if errOut != nil {
@@ -99,8 +99,9 @@ func handleMsg(connect net.Conn) {
 			}
 		}
 
-		fmt.Printf("%s", string(bufferOut[:lenOut]))
-		connect.Write(bufferOut[:])
+		//fmt.Printf("%s", string(bufferOut[:lenOut]))
+		connect.Write(bufferOut)
+		bufferOut = nil
 	}
 
 	err = cmd.Wait()
