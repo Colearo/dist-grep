@@ -10,6 +10,8 @@ import (
 	"encoding/json"
 	"time"
 	"sync"
+	"strconv"
+	"bytes"
 )
 
 
@@ -20,6 +22,8 @@ type Config struct {
 // global variables
 var args string
 var wg sync.WaitGroup
+var mutex sync.Mutex
+var total_count int
 
 func main() {
 	// Start timer
@@ -41,18 +45,23 @@ func main() {
 	args = strings.Join(os.Args[1:], " ")
 
 	// Send concurrent requests to all servers.
-	for _, address := range config.Addresses {
+	for index, address := range config.Addresses {
 		wg.Add(1)
-		go makeRequest(address)
+		go makeRequest(address, index)
 	}
 
 	// Wait for all requests to complete.
 	wg.Wait()
+
+	// Print total count.
+	fmt.Printf("total count: %d.\n", total_count)
+	
+	// Print processing time.
 	end := time.Now()
 	fmt.Printf("total time: %.3f seconds.\n", end.Sub(start).Seconds())
 }
 
-func makeRequest(address string) {
+func makeRequest(address string, index int) {
 	// Notify the WaitGroup after this goroutine complete.
 	defer wg.Done()
 
@@ -68,18 +77,53 @@ func makeRequest(address string) {
 	// Write arguments to the remote grep server.
 	conn.Write([]byte(args))
 
+
+	
+	// Read and buffer contents, then print.
+	var buf bytes.Buffer
+	io.Copy(&buf, conn)
+	info := buf.String()
+	
+	// Retrieve count number from info
+	t1 := time.Now()
+	info_list := strings.Split(info, ":")
+	count_info := info_list[len(info_list) - 1]
+	count_info = strings.TrimSpace(count_info)
+	count, _ := strconv.Atoi(count_info)
+	t2 := time.Now()
+
+	// Synchornize print contents from buffer, and add total_count.
+	mutex.Lock()
+	total_count += count
+	fmt.Print(info)
+	fmt.Println("time for retrieve count: ", t2.Sub(t1).Seconds())
+	mutex.Unlock()
+	
+
+
+	/*	
 	// Read and print concurrently.
 	// We ensure the last packet only contains the count information.
+	// Variables to collect count info.
+	var info, pre_info string
 	buf := make([]byte, 256)
 	for {
 		n, err := conn.Read(buf)
-		//fmt.Printf("\nNNNNNNNNNNNNNNNNNNNNN: %d\n", n)
 		if err != nil {
 			if err == io.EOF {
 				break
 			}
 			fmt.Print(err)
 		}
-		fmt.Print(string(buf[:n]))
+		pre_info = info
+		info = string(buf[:n])
+		fmt.Print(pre_info)
 	}
+	// Move count into to global var count
+	//count_str := strings.Split(info, ":")[1]
+	//count_str = strings.TrimSpace(count_str)
+	//count, _ := strconv.Atoi(count_str)
+	// Send count to global variables
+	//counts[index] = count
+	*/
 }
