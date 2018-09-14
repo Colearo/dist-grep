@@ -1,7 +1,15 @@
 {
 	"addresses": [
 		"fa18-cs425-g29-01.cs.illinois.edu:5555",
-		"fa18-cs425-g29-02.cs.illinois.edu:5555"
+		"fa18-cs425-g29-02.cs.illinois.edu:5555",
+		"fa18-cs425-g29-03.cs.illinois.edu:5555",
+		"fa18-cs425-g29-04.cs.illinois.edu:5555",
+		"fa18-cs425-g29-05.cs.illinois.edu:5555",
+		"fa18-cs425-g29-06.cs.illinois.edu:5555",
+		"fa18-cs425-g29-07.cs.illinois.edu:5555",
+		"fa18-cs425-g29-08.cs.illinois.edu:5555",
+		"fa18-cs425-g29-09.cs.illinois.edu:5555",
+		"fa18-cs425-g29-10.cs.illinois.edu:5555"
 	],
 	"localInfo": {
 		"nodeName": "vm1",
