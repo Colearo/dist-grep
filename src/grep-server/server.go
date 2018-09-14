@@ -13,6 +13,7 @@ import (
 	"sync"
 )
 
+// Config file parser structure
 type Config struct {
 	LocalInfo LocalInfo
 }
@@ -25,6 +26,7 @@ type LocalInfo struct {
 var config Config
 
 func main() {
+	// Open config file
 	configFile, err := os.Open("../../config.json")
 	if err != nil {
 		fmt.Println(err)
@@ -35,9 +37,11 @@ func main() {
 	configBytes, _ := ioutil.ReadAll(configFile)
 	json.Unmarshal(configBytes, &config)
 
+	// Bind server address and port
 	serverAddr := ":" + config.LocalInfo.ServerPort
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", serverAddr)
 	printError(err)
+	// Listen the request from client
 	listen, err := net.ListenTCP("tcp", tcpAddr)
 	printError(err)
 	for {
@@ -45,7 +49,8 @@ func main() {
 		if err != nil {
 			continue
 		}
-		handleMsg(connect)
+		// Handle the message sent from client
+		go handleMsg(connect)
 	}
 }
 
@@ -118,6 +123,6 @@ func handleMsg(connect net.Conn) {
 
 func printError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR]", err.Error())
+		fmt.Fprintf(os.Stderr, "\n[ERROR]", err.Error())
 	}
 }
