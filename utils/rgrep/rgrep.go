@@ -101,10 +101,6 @@ func (r *Rgrep) Launch(func_args string) {
 			f.Write([]byte(r.TestLogs[i]))
 		}
 	}
-
-	// Reset global count variables after all requests complete.
-	r.TotalCount = 0
-	r.TotalConnectedVMs = 0
 }
 
 func (r *Rgrep) MakeRequest(address string, index int) {
@@ -147,7 +143,7 @@ func (r *Rgrep) MakeRequest(address string, index int) {
 		r.TotalConnectedVMs += 1
 	}
 	r.TotalCount += count
-	
+
 	// Print info to the console if not in the test mode.
 	if !r.IsTest {
 		fmt.Print(info)
