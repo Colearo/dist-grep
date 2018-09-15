@@ -35,7 +35,7 @@ type Config struct {
 	Addresses []string
 }
 
-func (r *Rgrep) Launch(test_args string) {
+func (r *Rgrep) Launch(func_args string) {
 	// Start timer
 	start := time.Now()
 
@@ -54,7 +54,7 @@ func (r *Rgrep) Launch(test_args string) {
 
 	// Use func args as command args if os args is empty.
 	if len(os.Args) < 2 {
-		r.Args = test_args
+		r.Args = func_args
 	} else {
 		r.Args = strings.Join(os.Args[1:], " ")
 	}
