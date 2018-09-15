@@ -147,7 +147,11 @@ func (r *Rgrep) MakeRequest(address string, index int) {
 		r.TotalConnectedVMs += 1
 	}
 	r.TotalCount += count
-	fmt.Print(info)
+	
+	// Print info to the console if not in the test mode.
+	if !r.IsTest {
+		fmt.Print(info)
+	}
 
 	// Create test_logs for unit testing.
 	if r.IsTest {
