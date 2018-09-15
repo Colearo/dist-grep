@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"os/user"
 	"regexp"
 	"strings"
 	"sync"
@@ -27,7 +28,9 @@ var config Config
 
 func main() {
 	// Open config file
-	configFile, err := os.Open("$HOME/go/src/dist-grep/config.json")
+	usr, _ := user.Current()
+	usrHome := usr.HomeDir
+	configFile, err := os.Open(usrHome + "/go/src/dist-grep/config.json")
 	printError(err)
 	defer configFile.Close()
 
