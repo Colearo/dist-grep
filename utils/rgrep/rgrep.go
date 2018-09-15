@@ -17,80 +17,79 @@ import (
 )
 
 // OOP programming. Convenient for unit test.
-type Rgrep struct {}
+type Rgrep struct {
+	Args string
+	Config Config
+	TotalCount int
+	TotalConnectedVMs int
+	Wg sync.WaitGroup
+	Mutex sync.Mutex
+	UsrHome string
+	// Instance variables for unit test only.
+	IsTest bool
+	TestLogs []string
+}
 
+// A struct to store config information.
 type Config struct {
 	Addresses []string
 }
 
-// global variables
-var args string
-var wg sync.WaitGroup
-var mutex sync.Mutex
-var total_count int
-var total_connected_vm int
-var usrHome string
-
-// Global variables for unit test only.
-var isTest bool
-var test_log_infos []string
-
-func (r Rgrep) Launch(test_args string) {
+func (r *Rgrep) Launch(test_args string) {
 	// Start timer
 	start := time.Now()
 
 	// Open local config.json file.
 	usr, _ := user.Current()
-	usrHome = usr.HomeDir
-	configFile, err := os.Open(usrHome + "/go/src/dist-grep/config.json")
+	r.UsrHome = usr.HomeDir
+	configFile, err := os.Open(r.UsrHome + "/go/src/dist-grep/config.json")
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer configFile.Close()
 
-	// Read json file's contents and cache them to var config.
+	// Read json file's contents and pass them to r.Config.
 	configBytes, _ := ioutil.ReadAll(configFile)
-	var config Config
-	json.Unmarshal(configBytes, &config)
+	json.Unmarshal(configBytes, &r.Config)
 
 	// Use func args as command args if os args is empty.
 	if len(os.Args) < 2 {
-		args = test_args
+		r.Args = test_args
 	} else {
-		args = strings.Join(os.Args[1:], " ")
+		r.Args = strings.Join(os.Args[1:], " ")
 	}
 
 	// Arguments start with "-t" execute test mode.
-	if strings.Split(args, " ")[0] == "-t" {
-		args = strings.SplitN(args, " ", 2)[1] // Delete "-t" 
-		isTest = true
+	if strings.Split(r.Args, " ")[0] == "-t" {
+		r.Args = strings.SplitN(r.Args, " ", 2)[1] // Delete "-t" 
+		r.IsTest = true
 		fmt.Println("Test mode starts...")
 		// Make test log info array. For unit test onlt.
-		test_log_infos = make([]string, len(config.Addresses))
+		r.TestLogs = make([]string, len(r.Config.Addresses))
 	}
 
 	// Send concurrent requests to all servers.
-	for index, address := range config.Addresses {
-		wg.Add(1)
-		go makeRequest(address, index)
+	for index, address := range r.Config.Addresses {
+		r.Wg.Add(1)
+		go r.MakeRequest(address, index)
 	}
 
 	// Wait for all requests to complete.
-	wg.Wait()
+	r.Wg.Wait()
 
 	// Print total connected VMs.
-	fmt.Printf("Total Connected VMs: %d\n", total_connected_vm)
+	fmt.Printf("Total Connected VMs: %d\n", r.TotalConnectedVMs)
 
 	// Print total count.
-	fmt.Printf("Total Counts: %d\n", total_count)
+	fmt.Printf("Total Counts: %d\n", r.TotalCount)
 	
 	// Print total time.
 	end := time.Now()
 	fmt.Printf("Total Time: %.3f seconds\n", end.Sub(start).Seconds())
 
 	// Write test log info in unit test mode only.
-	if isTest {
-		filename := usrHome + "/go/src/dist-grep/test/test_logs/log"
+	if r.IsTest {
+		filename := r.UsrHome + "/go/src/dist-grep/test/test_logs/log"
 		f, err := os.Create(filename)
 		if err != nil {
 			fmt.Println("Failed to create test log file.")
@@ -98,19 +97,19 @@ func (r Rgrep) Launch(test_args string) {
 		}
 		defer f.Close()
 		// Write each goroutine's log info in sequence order.
-		for i, _ := range config.Addresses {
-			f.Write([]byte(test_log_infos[i]))
+		for i, _ := range r.Config.Addresses {
+			f.Write([]byte(r.TestLogs[i]))
 		}
 	}
 
 	// Reset global count variables after all requests complete.
-	total_connected_vm = 0
-	total_count = 0
+	r.TotalCount = 0
+	r.TotalConnectedVMs = 0
 }
 
-func makeRequest(address string, index int) {
+func (r *Rgrep) MakeRequest(address string, index int) {
 	// Notify the WaitGroup after this goroutine complete.
-	defer wg.Done()
+	defer r.Wg.Done()
 
 	// Record whether this machine is connected
 	var connected bool
@@ -126,7 +125,7 @@ func makeRequest(address string, index int) {
 	connected = true
 
 	// Write arguments to the remote grep server.
-	conn.Write([]byte(args))
+	conn.Write([]byte(r.Args))
 
 	// Read and buffer contents.
 	var buf bytes.Buffer
@@ -141,17 +140,17 @@ func makeRequest(address string, index int) {
 	count, _ := strconv.Atoi(count_info)
 
 	// Synchornize write operation.
-	mutex.Lock()
+	r.Mutex.Lock()
 
 	// Compute total count and total connected VMs.
 	if connected {
-		total_connected_vm += 1
+		r.TotalConnectedVMs += 1
 	}
-	total_count += count
+	r.TotalCount += count
 	fmt.Print(info)
 
 	// Create test_logs for unit testing.
-	if isTest {
+	if r.IsTest {
 		// Generate test log info whose format can be used in unit test.
 		info_list := strings.Split(info, "\n")
 		var test_log_info string
@@ -164,10 +163,10 @@ func makeRequest(address string, index int) {
 		}
 		// Assign this goroutine's test log info to a global string array.
 		// The array index equals to it's goroutine ID.
-		test_log_infos[index] = test_log_info
+		r.TestLogs[index] = test_log_info
 	}
 
-	mutex.Unlock()
+	r.Mutex.Unlock()
 
 	/*
 	// Read and print concurrently.
