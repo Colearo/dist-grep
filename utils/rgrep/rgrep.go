@@ -30,7 +30,7 @@ var mutex sync.Mutex
 var total_count int
 var total_connected_vm int
 
-func (r Rgrep) Launch() {
+func (r Rgrep) Launch(input_args string) {
 	// Start timer
 	start := time.Now()
 
@@ -48,8 +48,13 @@ func (r Rgrep) Launch() {
 	var config Config
 	json.Unmarshal(configBytes, &config)
 	
-	// Store grep arguments.
-	args = strings.Join(os.Args[1:], " ")
+	// Store grep arguments if args length is valid.
+	// Otherwise use func arguments. For unit testing.
+	if len(os.Args) > 1 {
+		args = strings.Join(os.Args[1:], " ")
+	} else {
+		args = input_args
+	}
 
 	// Send concurrent requests to all servers.
 	for index, address := range config.Addresses {
