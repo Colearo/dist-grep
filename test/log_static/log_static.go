@@ -3,6 +3,7 @@ package main
 import (
 	"dist-grep/utils/rgrep"
 	"fmt"
+	"os"
 	"os/exec"
 	"os/user"
 )
