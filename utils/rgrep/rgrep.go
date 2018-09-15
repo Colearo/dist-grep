@@ -35,7 +35,7 @@ var usrHome string
 var isTest bool
 var test_log_infos []string
 
-func (r Rgrep) Launch(input_args string) {
+func (r Rgrep) Launch(test_args string) {
 	// Start timer
 	start := time.Now()
 
@@ -52,14 +52,19 @@ func (r Rgrep) Launch(input_args string) {
 	configBytes, _ := ioutil.ReadAll(configFile)
 	var config Config
 	json.Unmarshal(configBytes, &config)
-	
-	// Store grep arguments if args length is valid.
-	// Otherwise use func arguments. For unit testing.
-	if len(os.Args) > 1 {
-		args = strings.Join(os.Args[1:], " ")
+
+	// Use func args as command args if os args is empty.
+	if len(os.Args) < 2 {
+		args = test_args
 	} else {
-		args = input_args
+		args = strings.Join(os.Args[1:], " ")
+	}
+
+	// Arguments start with "-t" execute test mode.
+	if strings.Split(args, " ")[0] == "-t" {
+		args = strings.SplitN(args, " ", 2)[1] // Delete "-t" 
 		isTest = true
+		fmt.Println("Test mode starts...")
 		// Make test log info array. For unit test onlt.
 		test_log_infos = make([]string, len(config.Addresses))
 	}
@@ -97,6 +102,10 @@ func (r Rgrep) Launch(input_args string) {
 			f.Write([]byte(test_log_infos[i]))
 		}
 	}
+
+	// Reset global count variables after all requests complete.
+	total_connected_vm = 0
+	total_count = 0
 }
 
 func makeRequest(address string, index int) {
