@@ -3,6 +3,6 @@
 cd `dirname $0`
 ./build_all.sh
 cd ../server
-./server
+nohup ./server&
 cd -
 
