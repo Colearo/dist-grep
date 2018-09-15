@@ -19,9 +19,10 @@ type Config struct {
 	LocalInfo LocalInfo
 }
 type LocalInfo struct {
-	NodeName   string
-	ServerPort string
-	LogPath    string
+	NodeName    string
+	ServerPort  string
+	LogPath     string
+	TestLogPath string
 }
 
 var config Config

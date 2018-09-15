@@ -2,7 +2,7 @@
 
 cd `dirname $0`
 ./build_all.sh
-cd ../src/grep-server
+cd ../server
 ./server
 cd -
 
