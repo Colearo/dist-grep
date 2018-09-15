@@ -29,6 +29,11 @@ var wg sync.WaitGroup
 var mutex sync.Mutex
 var total_count int
 var total_connected_vm int
+var usrHome string
+
+// Global variables for unit test only.
+var isTest bool
+var test_log_infos []string
 
 func (r Rgrep) Launch(input_args string) {
 	// Start timer
@@ -36,7 +41,7 @@ func (r Rgrep) Launch(input_args string) {
 
 	// Open local config.json file.
 	usr, _ := user.Current()
-	usrHome := usr.HomeDir
+	usrHome = usr.HomeDir
 	configFile, err := os.Open(usrHome + "/go/src/dist-grep/config.json")
 	if err != nil {
 		fmt.Println(err)
@@ -54,6 +59,9 @@ func (r Rgrep) Launch(input_args string) {
 		args = strings.Join(os.Args[1:], " ")
 	} else {
 		args = input_args
+		isTest = true
+		// Make test log info array. For unit test onlt.
+		test_log_infos = make([]string, len(config.Addresses))
 	}
 
 	// Send concurrent requests to all servers.
@@ -74,6 +82,21 @@ func (r Rgrep) Launch(input_args string) {
 	// Print total time.
 	end := time.Now()
 	fmt.Printf("Total Time: %.3f seconds\n", end.Sub(start).Seconds())
+
+	// Write test log info in unit test mode only.
+	if isTest {
+		filename := usrHome + "/go/src/dist-grep/test/test_logs/log"
+		f, err := os.Create(filename)
+		if err != nil {
+			fmt.Println("Failed to create test log file.")
+			return
+		}
+		defer f.Close()
+		// Write each goroutine's log info in sequence order.
+		for i, _ := range config.Addresses {
+			f.Write([]byte(test_log_infos[i]))
+		}
+	}
 }
 
 func makeRequest(address string, index int) {
@@ -108,13 +131,33 @@ func makeRequest(address string, index int) {
 	count_info = re.FindString(count_info)
 	count, _ := strconv.Atoi(count_info)
 
-	// Synchornize print contents from buffer, and add total_count.
+	// Synchornize write operation.
 	mutex.Lock()
+
+	// Compute total count and total connected VMs.
 	if connected {
 		total_connected_vm += 1
 	}
 	total_count += count
 	fmt.Print(info)
+
+	// Create test_logs for unit testing.
+	if isTest {
+		// Generate test log info whose format can be used in unit test.
+		info_list := strings.Split(info, "\n")
+		var test_log_info string
+		for _, entry := range info_list {
+			entry_list := strings.Split(entry, ":")
+			if len(entry_list) > 2 {
+				entry = entry_list[2]
+				test_log_info = test_log_info + entry + "\n"
+			}
+		}
+		// Assign this goroutine's test log info to a global string array.
+		// The array index equals to it's goroutine ID.
+		test_log_infos[index] = test_log_info
+	}
+
 	mutex.Unlock()
 
 	/*
