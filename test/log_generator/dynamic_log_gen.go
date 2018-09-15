@@ -40,17 +40,20 @@ func main() {
 	file, err := os.OpenFile("./test_"+config.LocalInfo.NodeName+".log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0766)
 	logPrefix := "[" + config.LocalInfo.NodeName + "]: "
 	logger := log.New(file, logPrefix, log.Ldate|log.Ltime|log.Lshortfile)
+
 	i := 0
 
 	randSource := rand.NewSource(time.Now().UnixNano())
 	randGen := rand.New(randSource)
 	for {
 		if i < 1000 {
-			logger.Println("Gen logs here")
+			logger.Printf("Gen logs here\n")
+			logger.Printf("KNOWN PATTERN 1000 [%d]\n", i)
 		} else {
 			logger.Printf("Gen logs here %d\n", randGen.Intn(10000))
+			logger.Printf("RANDOM PATTERN [%d]\n", i)
+			time.Sleep(10 * time.Second)
 		}
 		i += 1
-		time.Sleep(10 * time.Second)
 	}
 }
