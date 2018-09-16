@@ -26,7 +26,9 @@ A distributed version of grep command (So called "dist-grep") implemented by CS 
 
 We made some easy-to-use shell scripts to build the program, including the server and client. Follow the command below:
 
-`./scripts/build_all`
+```bash
+./scripts/build_all
+```
 
 Or go to the server or client directory, and run `go build`
 
