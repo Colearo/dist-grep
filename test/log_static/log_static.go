@@ -3,7 +3,6 @@ package main
 import (
 	"dist-grep/utils/rgrep"
 	"fmt"
-	"os"
 	"os/exec"
 	"os/user"
 )
@@ -19,7 +18,11 @@ var infrequentPatternFile string = "/go/src/dist-grep/test/golden_logs/infrequen
 var frequentPattern string = "-t -E 2.11\n"
 var frequentPatternFile string = "/go/src/dist-grep/test/golden_logs/frequent_pattern_expected_output.log"
 
+var crashShell string = "/go/src/dist-grep/scripts/kill_server_remote.sh"
+var crashFile string = "/go/src/dist-grep/test/golden_logs/crashed_pattern_expected_output.log"
+
 func main() {
+
 	r := rgrep.Rgrep{}
 	r.Launch(regularExpPattern)
 
@@ -52,5 +55,17 @@ func main() {
 		fmt.Printf("Test Passed for Frequent Pattern: %s\n", frequentPattern)
 	} else {
 		fmt.Printf("Test Failed for Frequent Pattern: %s\n", frequentPattern)
+	}
+
+	cmd = exec.Command(usrHome+crashShell, "09")
+	cmd.Run()
+	r = rgrep.Rgrep{}
+	r.Launch(frequentPattern)
+	cmd = exec.Command("diff", usrHome+outputFile, usrHome+crashFile)
+	stdOutErr, _ = cmd.CombinedOutput()
+	if len(stdOutErr) == 0 {
+		fmt.Printf("Test Passed for Crashed One Server Pattern: %s\n", frequentPattern)
+	} else {
+		fmt.Printf("Test Failed for Crashed One Server Pattern: %s\n", frequentPattern)
 	}
 }
