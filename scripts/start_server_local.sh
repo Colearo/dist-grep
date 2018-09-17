@@ -3,6 +3,5 @@
 cd `dirname $0`
 ./build_all.sh
 cd ../server
-nohup ./server&
-exit
+nohup ./server > /dev/null 2>&1 &;
 
